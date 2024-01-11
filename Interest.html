@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interest Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 300px; margin: auto; padding-top: 50px; }
+        label { display: block; margin-top: 10px; }
+        input[type='text'], input[type='date'] { width: 100%; padding: 8px; margin-top: 5px; }
+        button { width: 100%; padding: 10px; margin-top: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .result { margin-top: 20px; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Compound Interest Calculator</h2>
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date">
+
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date">
+
+        <label for="principal">Principal (₹):</label>
+        <input type="text" id="principal" oninput="formatPrincipal()" min="0">
+
+        <button onclick="calculateInterest()">Calculate Interest</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function formatPrincipal() {
+            var input = document.getElementById("principal");
+            var value = input.value.replace(/,/g, '');
+            if (!isNaN(value) && value.trim() !== '') {
+                var formatted = Number(value).toLocaleString('en-IN');
+                input.value = formatted;
+            }
+        }
+
+        function calculateInterest() {
+            var startDate = new Date(document.getElementById("start_date").value);
+            var endDate = new Date(document.getElementById("end_date").value);
+            var principalInput = document.getElementById("principal").value.replace(/,/g, '');
+            var principal = parseFloat(principalInput);
+
+            // Calculate the exact number of years, months, and days between dates
+            var years = endDate.getFullYear() - startDate.getFullYear();
+            var months = endDate.getMonth() - startDate.getMonth();
+            var days = endDate.getDate() - startDate.getDate();
+
+            // Adjust for incomplete months or years
+            if (days < 0) {
+                months--;
+                days += new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            var totalMonths = years * 12 + months;
+            var compoundedPrincipal = principal;
+            var interest = 0;
+
+            // Compound Interest for completed years
+            if (years > 0) {
+                compoundedPrincipal = principal * Math.pow(1 + 0.24, years);
+                interest = compoundedPrincipal - principal;
+            }
+
+            // Simple Interest for remaining months and days
+            if (totalMonths > 12 || (totalMonths === 12 && days > 0)) {
+                compoundedPrincipal = (years > 0) ? compoundedPrincipal : principal;
+                var monthlyInterest = compoundedPrincipal * 0.02;
+                interest += monthlyInterest * months;
+                interest += (monthlyInterest / new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate()) * days;
+            } else {
+                interest = principal * 0.02 * totalMonths;
+                interest += (principal * 0.02 / new Date(startDate.getFullYear(), startDate.getMonth() + totalMonths, 0).getDate()) * days;
+            }
+
+            var totalAmount = principal + interest;
+            document.getElementById("result").innerHTML = 
+                "Interest: ₹" + Number(interest.toFixed(2)).toLocaleString('en-IN') + "<br>" +
+                "Total Amount: ₹" + Number(totalAmount.toFixed(2)).toLocaleString('en-IN');
+        }
+    </script>
+</body>
+</html>
